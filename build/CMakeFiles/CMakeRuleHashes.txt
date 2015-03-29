@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+40142b2e52878c93ac373580c7c28214 lm-invoice.moc
+e12b011bdcdeecdd8c7f0c0403776087 src/dialogs/moc_SettingsDialog.cxx
+dc24568ebdc77be00c483577eb36b998 src/moc_lm-invoice.cxx

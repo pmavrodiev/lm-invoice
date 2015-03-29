@@ -1,4 +1,5 @@
 #include "lm-invoice.h"
+#include "dialogs/SettingsDialog.h"
 
 #include <iostream>
 #include <QtGui/QLabel>
@@ -27,72 +28,9 @@
 
 
 
-void lm_invoice::addTableRow(QHash<QString, QTableWidgetItem* > row) {
-  if (row.size() > 0) {
-    tableWidget->insertRow(tableWidget->rowCount());
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/0,row["FirstName"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/1,row["LastName"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/2,row["Street"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/3,row["PostCode"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/4,row["Phone"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/5,row["BirthDate"]);
-    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/6,row["Email"]);
-  }
-  else {
-    //TODO the function should have never been called in this case
-  }
-}
-
-
-void lm_invoice::closeEvent(QCloseEvent *event) {
-  if (maybeSave()) {
-    event->accept();
-  } 
-  else {
-    event->ignore();
-  }
-}
-
-void lm_invoice::writeSettings() {
-    //save any changes to the location of the membership file 
-    //and the latex template as new settings
-    QSettings settings;
-    //make sure files have been loaded
-    if (membershipFile!=0 || latexTemplate!=0) {
-      settings.beginGroup("MainFiles");
-      if (membershipFile) 
-	settings.setValue("membership file",membershipFile->fileName());
-      if (latexTemplate)
-	settings.setValue("latex template",latexTemplate->fileName());
-      settings.endGroup();
-    }
-}
-
-void lm_invoice::readSettings() {
-  QSettings settings;
-  settings.beginGroup("MainFiles");
-  QString membFile = settings.value("membership file","../resources/files/Mitgliedschaft 2015.csv");
-  this->openMembFile(membFile);
-  settings.endGroup();
-  
-}
-
-
-bool lm_invoice::maybeSave() {
-  QMessageBox::StandardButton ret;
-  ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The document has been modified.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-  if (ret == QMessageBox::Save) {
-    writeSettings();
-    return true;
-  }
-  else if (ret == QMessageBox::Cancel)
-    return false;  
-  return true;
-}
-
+/***
+ *** INITIALIZE LAYOUTS AND MENUS
+ */
 
 void lm_invoice::createLayout() {
   root = new QFrame(/*parent =*/ 0);
@@ -149,7 +87,7 @@ void lm_invoice::createToolBars() {
   //
   menuSettings = new QMenu(menuBar);
   menuSettings->setTitle("Settings");
-  menuSettings->addAction(loadLatexTemaplateAct);
+  menuSettings->addAction(openSettingsDialogAct);
   //
   menuHelp = new QMenu(menuBar);
   menuHelp->setTitle("Help");
@@ -163,39 +101,11 @@ void lm_invoice::createToolBars() {
   mainToolBar = new QToolBar(this);
   mainToolBar->addAction(openAct);
   mainToolBar->addAction(saveAct);
-  mainToolBar->addAction(loadLatexTemaplateAct);
+  mainToolBar->addAction(openSettingsDialogAct);
   this->addToolBar(mainToolBar);
   
 }
 
-/*SLOTS */
-void lm_invoice::showFileDialog() {
-  return openMembFile(QFileDialog();::getOpenFileName(this));
-}
-
-void lm_invoice::saveMembFile() {
-  std::cout<<"Save"<<std::endl;
-}
-
-void lm_invoice::loadLatexTemplate() {
-  std::cout<<"Load a new latex template"<<std::endl;  
-}
-
-void lm_invoice::showAbout() {
-  QMessageBox::about(this, tr("About Application"),
-		     tr("The <b>Application</b> example demonstrates how to "
-		"write modern GUI applications using Qt, with a menu bar, "
-               "toolbars, and a status bar."));
-
-  std::cout<<"Who did this?"<<std::endl;  
-}
-
-void lm_invoice::genButtonPressed() {
-  std::cout<<"Generate"<<std::endl;
-}
-
-
-/**/
 void lm_invoice::createActions() {
   openAct = new QAction(tr("&Open"),/*parent=*/this);
   openAct->setShortcut(QKeySequence::Open);
@@ -210,22 +120,60 @@ void lm_invoice::createActions() {
   saveAct->setEnabled(false); //wait until changes have been made
   connect(saveAct, SIGNAL(triggered()), this, SLOT(saveMembFile()));
   //
-  loadLatexTemaplateAct = new QAction(tr("&Load LaTeX Template"),/*parent=*/this);
+  openSettingsDialogAct = new QAction(tr("&Load LaTeX Template"),/*parent=*/this);
   //loadLatexTemaplateAct->setShortcut(QKeySequence::);
-  loadLatexTemaplateAct->setIcon(QIcon("../resources/icons/settings.png"));
-  loadLatexTemaplateAct->setToolTip("Load a new LaTeX template file");
-  connect(loadLatexTemaplateAct, SIGNAL(triggered()), this, SLOT(loadLatexTemplate()));
+  openSettingsDialogAct->setIcon(QIcon("../resources/icons/settings.png"));
+  openSettingsDialogAct->setToolTip("Configure InvoiceGenerator");
+  connect(openSettingsDialogAct, SIGNAL(triggered()), this, SLOT(openSettingsDialog()));
   //
   aboutAct = new QAction(tr("&About"),/*parent=*/this);
   aboutAct->setStatusTip("Who did this?");
   connect(aboutAct, SIGNAL(triggered()), this, SLOT(showAbout())); 
 }
+/********/
 
+/***
+ *** SLOTS 
+ */
+void lm_invoice::showFileDialog() {
+  return openMembFile(QFileDialog::getOpenFileName(this));
+}
+
+void lm_invoice::saveMembFile() {
+  std::cout<<"Save"<<std::endl;
+}
+
+void lm_invoice::openSettingsDialog() {  
+  //the memory pointed to by sd is already
+  //released from the destructor of SettingsDialog
+  //so deleting here would be a double delete -> bad
+  sd=SettingsDialog::getSettingsDialog(root);
+  //sd->createGui();
+  std::cout<<"Configure InvoiceGenerator"<<std::endl;  
+}
+
+void lm_invoice::showAbout() {
+  QMessageBox::about(this, tr("About Application"),
+		     tr("The <b>Application</b> example demonstrates how to "
+		"write modern GUI applications using Qt, with a menu bar, "
+               "toolbars, and a status bar."));
+
+  std::cout<<"Who did this?"<<std::endl;  
+}
+
+void lm_invoice::genButtonPressed() {
+  std::cout<<"Generate"<<std::endl;
+}
+/*******/
+
+/***
+ *** CORE FUNCTIONS
+ */
 void lm_invoice::openMembFile(QString filename) {
   if (!filename.isEmpty()) {
     //load the csv file    
     std::cout<<filename.toStdString()<<std::endl;
-    membershipFile = &QFile(filename);
+    membershipFile = new QFile(filename);
     if (membershipFile->open(QIODevice::ReadOnly)) {
     //file opened successfully
       QList<QByteArray> wordList;
@@ -259,20 +207,101 @@ void lm_invoice::openMembFile(QString filename) {
   qDebug() << "Open";
 }
 
+void lm_invoice::addTableRow(QHash<QString, QTableWidgetItem* > row) {
+  if (row.size() > 0) {
+    tableWidget->insertRow(tableWidget->rowCount());
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/0,row["FirstName"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/1,row["LastName"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/2,row["Street"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/3,row["PostCode"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/4,row["Phone"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/5,row["BirthDate"]);
+    tableWidget->setItem(/*row=*/tableWidget->rowCount()-1,/*column=*/6,row["Email"]);
+  }
+  else {
+    //TODO the function should have never been called in this case
+  }
+}
 
+void lm_invoice::closeEvent(QCloseEvent *event) {
+  if (maybeSave()) {
+    event->accept();
+  } 
+  else {
+    event->ignore();
+  }
+}
+
+/*******/
+
+/***
+ *** UTILITY FUNCTIONS
+ */
+void lm_invoice::writeSettings() {
+    //save any changes to the location of the membership file 
+    //and the latex template as new settings
+    QSettings settings;
+    //make sure files have been loaded
+    if (membershipFile!=0 || latexTemplate!=0) {
+      settings.beginGroup("MainFiles");
+      if (membershipFile) 
+	settings.setValue("membership file",membershipFile->fileName());
+      if (latexTemplate)
+	settings.setValue("latex template",latexTemplate->fileName());
+      settings.endGroup();
+    }
+}
+
+void lm_invoice::readSettings() {
+  QSettings settings;
+  settings.beginGroup("MainFiles");
+  QString membFile = settings.value("membership file","../resources/files/Mitgliedschaft 2015.csv").toString();
+   this->openMembFile(membFile);
+  settings.endGroup();
+  
+}
+/*******/
+
+bool lm_invoice::maybeSave() {
+  QMessageBox::StandardButton ret;
+  ret = QMessageBox::warning(this, tr("Application"),
+                     tr("The document has been modified.\n"
+                        "Do you want to save your changes?"),
+                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+  if (ret == QMessageBox::Save) {
+    writeSettings();
+    return true;
+  }
+  else if (ret == QMessageBox::Cancel)
+    return false;  
+  return true;
+}
+
+/*******/
+
+/***
+ *** CONSTRUCTORS AND DESTRUCTOR 
+ */
 lm_invoice::lm_invoice()
 {
     //make sure pointers are properly initialized
-    membershipFile=0;latexTemplate=0;
-    //
-    readSettings();
+    membershipFile=0;latexTemplate=0;sd=0;
+    //init gui elements
     createActions();  
     createLayout();
     createToolBars();
+    //
+    readSettings();
 
 }
 
-lm_invoice::~lm_invoice()
-{}
-
+lm_invoice::~lm_invoice() {
+  if (membershipFile)
+    delete membershipFile;
+  if (latexTemplate)
+    delete latexTemplate;
+  if (sd)
+    delete sd;
+}
+/*******/
 #include "lm-invoice.moc"

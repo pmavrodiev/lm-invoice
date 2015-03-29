@@ -22,6 +22,7 @@ class QToolBar;
 class QCloseEvent;
 class QTableWidgetItem;
 class QFile;
+class SettingsDialog;
 //
 
 
@@ -39,7 +40,7 @@ private slots:
     //Action methods
     void showFileDialog();
     void saveMembFile();
-    void loadLatexTemplate();
+    void openSettingsDialog();
     void showAbout();
     //Push push button
     void genButtonPressed();
@@ -48,9 +49,10 @@ private:
     //File pointers to resource files
     QFile *membershipFile;
     QFile *latexTemplate;
-    //QT layout elements
+    //QT elements
     QWidget *root;
     QWidget *gridLayoutWidget;
+    SettingsDialog *sd;
     QSpacerItem *verticalSpacer;
     QPushButton *pushButton;
     QMenuBar *menuBar;
@@ -61,33 +63,26 @@ private:
     QMenu* menuSettings;
     QMenu* menuHelp;
     QToolBar *mainToolBar;
-    QToolBar *toolBar;
-    //Initialize layout and menus
-    void createActions();
-    void createLayout();
-    void createToolBars();
-    void createStatusBar();
+    QToolBar *toolBar;   
     //QT actions
     QAction* openAct;
     QAction* saveAct;
     QAction* exitAct;
-    QAction* loadLatexTemaplateAct;
-    QAction* aboutAct;  
-    //
-    void openMembFile(QString filename);
+    QAction* openSettingsDialogAct;
+    QAction* aboutAct;
+    //UI - Initialize layout and menus
+    void createActions();
+    void createLayout();
+    void createToolBars();
+    void createStatusBar();
+    //Core functionality
+    void openMembFile(QString filename);    
+    void addTableRow(QHash<QString, QTableWidgetItem *> row);   
+    //Utility functions
     void readSettings();
     void writeSettings();
-    bool maybeSave();
-    void loadFile(const QString &fileName);
-    bool saveFile(const QString &fileName);
-    void addTableRow(QHash<QString, QTableWidgetItem *> row);
-    void setCurrentFile(const QString &fileName);
-    QString strippedName(const QString &fullFileName);    
-    QString curFile;
-
-  
-    
-    
+    bool maybeSave();  
+    //
     
 };
 #endif // lm_invoice_H
