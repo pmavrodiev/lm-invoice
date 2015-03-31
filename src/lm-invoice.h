@@ -36,6 +36,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event);
     
+    
 private slots:
     //Action methods
     void showFileDialog();
@@ -44,6 +45,7 @@ private slots:
     void showAbout();
     //Push push button
     void genButtonPressed();
+    void closing();
 
 private:
     //File pointers to resource files

@@ -20,5 +20,6 @@ int main(int argc, char** argv)
     double scalingFactor=0.7; //70% of main screen size
     foo.setFixedSize(scalingFactor*mainScreenSize.width(),scalingFactor*mainScreenSize.height());
     foo.show();
+    QObject::connect(&app,SIGNAL(aboutToQuit()),&foo,SLOT(closing()));
     return app.exec();
 }

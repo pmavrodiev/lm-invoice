@@ -26,6 +26,11 @@
 #include <QHash>
 #include <QSettings>
 
+void lm_invoice::closing() {
+  qDebug() << "In about to quit";
+  if (sd) 
+    qDebug() << sd->name;
+}
 
 
 /***
@@ -120,7 +125,7 @@ void lm_invoice::createActions() {
   saveAct->setEnabled(false); //wait until changes have been made
   connect(saveAct, SIGNAL(triggered()), this, SLOT(saveMembFile()));
   //
-  openSettingsDialogAct = new QAction(tr("&Load LaTeX Template"),/*parent=*/this);
+  openSettingsDialogAct = new QAction(tr("&Configure InvoiceGenerator"),/*parent=*/this);
   //loadLatexTemaplateAct->setShortcut(QKeySequence::);
   openSettingsDialogAct->setIcon(QIcon("../resources/icons/settings.png"));
   openSettingsDialogAct->setToolTip("Configure InvoiceGenerator");
@@ -148,7 +153,8 @@ void lm_invoice::openSettingsDialog() {
   //released from the destructor of SettingsDialog
   //so deleting here would be a double delete -> bad
   sd=SettingsDialog::getSettingsDialog(root);
-  //sd->createGui();
+  //this is a blocking call
+  QDialog::DialogCode rv = sd->showDialog();  
   std::cout<<"Configure InvoiceGenerator"<<std::endl;  
 }
 
@@ -295,13 +301,18 @@ lm_invoice::lm_invoice()
 
 }
 
-lm_invoice::~lm_invoice() {
+lm_invoice::~lm_invoice() {  
+  qDebug() << "In ~lm_invoice";
   if (membershipFile)
     delete membershipFile;
   if (latexTemplate)
-    delete latexTemplate;
-  if (sd)
+    delete latexTemplate;  
+  if (sd) {
+    qDebug() << sd;
+    qDebug() << sd->name;    
     delete sd;
+  }
+  qDebug() << "Out of ~lm_invoice";
 }
 /*******/
-#include "lm-invoice.moc"
+//#include "lm-invoice.moc"
