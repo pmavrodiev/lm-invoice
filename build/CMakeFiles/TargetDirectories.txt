@@ -1,1 +1,0 @@
-/home/pmavrodiev/Projects/lm-invoice/build/CMakeFiles/Invoice_Generator.dir

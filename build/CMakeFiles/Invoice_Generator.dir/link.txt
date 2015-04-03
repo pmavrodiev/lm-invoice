@@ -1,1 +1,0 @@
-/usr/bin/c++   -g    CMakeFiles/Invoice_Generator.dir/src/dialogs/SettingsDialog.cpp.o CMakeFiles/Invoice_Generator.dir/src/lm-invoice.cpp.o CMakeFiles/Invoice_Generator.dir/src/main.cpp.o  -o Invoice_Generator -rdynamic -lQtCore -lQtGui 

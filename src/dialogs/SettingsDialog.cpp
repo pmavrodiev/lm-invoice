@@ -21,42 +21,30 @@
 #include <QtGui/QStyledItemDelegate>
 #include <QModelIndex>
 #include <QString>
+#include <QtGui/QIcon>
+
 
 
 /*Some methods to construct this dialog (e.g. fonts, Gui elements) 
  * have been adopted from QCreator's Settings dialog:
    src/plugins/coreplugin/dialogs/settingsdialog.cpp*/
 
-SettingsDialog* SettingsDialog::getSettingsDialog ( QWidget* parent ) {  
-  if (instance == 0) {
-    qDebug() << "Created new instance of settings dialog";
-    instance = new SettingsDialog(parent);    
-  }
-  return instance;
-  //static SettingsDialog sinstance(parent);    
-  //return &sinstance;
-}
-
 /***
  *** CONSTRUCTORS AND DESTRUCTOR
  */
-SettingsDialog* SettingsDialog::instance = 0;
 SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
   header_label = new QLabel;
   stackedLayout = new QStackedLayout;
   categoryListView = new CategoryListView(parent);
-  name = "BUBUUU";
 }
 
 
 SettingsDialog::~SettingsDialog() {
   qDebug() << "In ~SettingsDialog";
-  qDebug() << name;
   delete header_label;
   //delete headerHLayout;
   delete stackedLayout;
   delete categoryListView;
-  //delete instance;
   qDebug() << "Out of ~SettingsDialog";
 }
 
@@ -66,11 +54,17 @@ void SettingsDialog::done(int val) {
 }
 
 void SettingsDialog::accept() {
+  qDebug() << "Pressed Accept";
   done(QDialog::Accepted);
 }
 
 void SettingsDialog::reject() {
+  qDebug() << "Pressed Reject";
   done(QDialog::Rejected);
+}
+
+void SettingsDialog::apply() {
+  qDebug() << "Pressed Apply";
 }
 
 QDialog::DialogCode SettingsDialog::showDialog() {
@@ -104,12 +98,15 @@ void SettingsDialog::createGui() {
                                                      QDialogButtonBox::Apply |
                                                      QDialogButtonBox::Cancel);
   buttonBox->button(QDialogButtonBox::Ok)->setDefault(true);
-  //connect(buttonBox->button(QDialogButtonBox::Apply), &QAbstractButton::clicked,
-  //        this, this->apply());
- 
-  connect(buttonBox, SIGNAL(buttonBox->accepted()), this, SLOT(accept()));
-  //connect(buttonBox, &QDialogButtonBox::rejected, this, reject());
- 
+  //connect the OK button
+  connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+  //connect the Reject button
+  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  //connect the Apply button
+  connect(buttonBox->button(QDialogButtonBox::Apply), SIGNAL(clicked()),
+          this,SLOT(apply()));
+  //
+  
   QGridLayout *mainGridLayout = new QGridLayout;
   //mainGridLayout->addWidget(m_filterLineEdit, 0, 0, 1, 1);
   mainGridLayout->addLayout(headerHLayout,    0, 1, 1, 1);
@@ -130,10 +127,30 @@ void SettingsDialog::createGui() {
 // ----------------- Cateogry List View
 
 /*
- * These two classes are taken from the QtCreator 3.3.2 
+ * These classes are taken from the QtCreator 3.3.2 
  * source: plugins/coreplugin/dialogs/settingsdialog.cpp
  * 
  */
+
+bool Category::findPageById(const int id, int *pageIndex) const {
+  for (int j = 0; j < pages.size(); ++j) {
+    IOptionsPage *page = pages.at(j);
+    if (page->id() == id) {
+      *pageIndex = j;
+       return true;
+    }
+  }
+  return false;
+}
+
+Category::Category() {
+  index=-1;
+  id = -1;
+  providerPagesCreated=false;
+}
+
+
+
 CategoryListViewDelegate::CategoryListViewDelegate(QObject *parent) : QStyledItemDelegate(parent) {}
 
 QSize CategoryListViewDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) {

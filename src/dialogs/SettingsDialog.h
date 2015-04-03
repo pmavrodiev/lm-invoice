@@ -6,6 +6,9 @@
 #include <QtGui/QWidget>
 #include <QtGui/QListView>
 #include <QtGui/QStyledItemDelegate>
+#include <QList>
+
+#include "ioptionspage.h"
 
 //forward declaration of classes
 class QLabel;
@@ -15,40 +18,40 @@ class QEvent;
 class QModelIndex;
 class QStyleOptionViewItem;
 class CategoryListView;
-class Qstring;
+class QString;
+
+class IOptionsPage;
+class IOptionsPageProvider;
+class QTabWidget;
+class QIcon;
+class QSize;
+
+
 
 class SettingsDialog: public QDialog {
 Q_OBJECT
 
 public:
-    // Returns a settings dialog. This makes sure that always only
-    // a single settings dialog instance is running.
-    // The dialog will be deleted automatically on close.    
-    static SettingsDialog *getSettingsDialog(QWidget *parent);
-    
-    // Run the dialog and wait for it to finish.
-    // Returns if the changes have been applied.
-    //bool execDialog();
-    QString name;
-    QDialog::DialogCode showDialog();
+    SettingsDialog(QWidget *parent);
     virtual ~SettingsDialog(); 
+    
+    QDialog::DialogCode showDialog();
     
 private slots:
   void done(int val);
   void accept();
+  void apply();
   int exec();
   //void open();
   void reject();  
   
 private: 
-  static SettingsDialog *instance;
   
   QLabel *header_label;
   QHBoxLayout *headerHLayout;
   QStackedLayout *stackedLayout;
   CategoryListView *categoryListView;
   
-  SettingsDialog(QWidget *parent);
   
   void createGui();
   //void accept();
@@ -68,10 +71,27 @@ private:
 
 
 /*
- * These two classes are taken from the QtCreator 3.3.2 
+ * These classes are taken from the QtCreator 3.3.2 
  * source: plugins/coreplugin/dialogs/settingsdialog.cpp
  * 
  */
+
+class Category {
+public:
+    Category();
+
+    bool findPageById(const int id, int *pageIndex) const;
+
+    int id;
+    int index;
+    QString displayName;
+    QIcon icon;
+    QList<IOptionsPage *> pages;
+    QList<IOptionsPageProvider *> providers;
+    bool providerPagesCreated;
+    QTabWidget *tabWidget;
+};
+
 
 class CategoryListViewDelegate : public QStyledItemDelegate {
 public:

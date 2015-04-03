@@ -28,8 +28,6 @@
 
 void lm_invoice::closing() {
   qDebug() << "In about to quit";
-  if (sd) 
-    qDebug() << sd->name;
 }
 
 
@@ -149,10 +147,9 @@ void lm_invoice::saveMembFile() {
 }
 
 void lm_invoice::openSettingsDialog() {  
-  //the memory pointed to by sd is already
-  //released from the destructor of SettingsDialog
-  //so deleting here would be a double delete -> bad
-  sd=SettingsDialog::getSettingsDialog(root);
+  //reuse previous dialogs if any
+  if (!sd)
+    sd=new SettingsDialog(root);
   //this is a blocking call
   QDialog::DialogCode rv = sd->showDialog();  
   std::cout<<"Configure InvoiceGenerator"<<std::endl;  
@@ -288,8 +285,7 @@ bool lm_invoice::maybeSave() {
 /***
  *** CONSTRUCTORS AND DESTRUCTOR 
  */
-lm_invoice::lm_invoice()
-{
+lm_invoice::lm_invoice() {
     //make sure pointers are properly initialized
     membershipFile=0;latexTemplate=0;sd=0;
     //init gui elements
@@ -309,7 +305,6 @@ lm_invoice::~lm_invoice() {
     delete latexTemplate;  
   if (sd) {
     qDebug() << sd;
-    qDebug() << sd->name;    
     delete sd;
   }
   qDebug() << "Out of ~lm_invoice";
