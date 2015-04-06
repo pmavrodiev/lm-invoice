@@ -33,15 +33,18 @@
  *** CONSTRUCTORS AND DESTRUCTOR
  */
 SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
-  header_label = new QLabel;
+  m_headerLabel = new QLabel;
   stackedLayout = new QStackedLayout;
   categoryListView = new CategoryListView(parent);
+  
+  m_model = new CategoryModel(/*parent=*/this);
+  m_pages = 0;asd
 }
 
 
 SettingsDialog::~SettingsDialog() {
   qDebug() << "In ~SettingsDialog";
-  delete header_label;
+  delete m_headerLabel;
   //delete headerHLayout;
   delete stackedLayout;
   delete categoryListView;
@@ -69,6 +72,14 @@ void SettingsDialog::apply() {
 
 QDialog::DialogCode SettingsDialog::showDialog() {
   createGui();
+  qDebug() << windowFlags();
+  //remove the WindowContextHelpButtonHint by unsettings
+  //the corresponding bits. In other words the help button
+  //in the dialog title bar is gone  
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  
+  m_model->setPages();
+  
   exec();
 }
 
@@ -79,17 +90,17 @@ int SettingsDialog::exec() {
 void SettingsDialog::createGui() {
   // Header label with large font and 
   //a bit of spacing (align with group boxes)
-  QFont headerLabelFont = header_label->font();
+  QFont headerLabelFont = m_headerLabel->font();
   headerLabelFont.setBold(true);
   const int pointSize = headerLabelFont.pointSize();
   if (pointSize > 0)
     headerLabelFont.setPointSize(pointSize+2);
-  header_label->setFont(headerLabelFont);
+  m_headerLabel->setFont(headerLabelFont);
   //
   QHBoxLayout *headerHLayout = new QHBoxLayout;
   const int leftMargin = qApp->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
   headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
-  headerHLayout->addWidget(header_label);
+  headerHLayout->addWidget(m_headerLabel);
  
   stackedLayout->setMargin(0);
   stackedLayout->addWidget(new QWidget(this)); // no category selected, for example when filtering
@@ -124,13 +135,14 @@ void SettingsDialog::createGui() {
 }
 /********/
 
-// ----------------- Cateogry List View
 
 /*
  * These classes are taken from the QtCreator 3.3.2 
  * source: plugins/coreplugin/dialogs/settingsdialog.cpp
  * 
  */
+
+// ----------------- Category model
 
 bool Category::findPageById(const int id, int *pageIndex) const {
   for (int j = 0; j < pages.size(); ++j) {
@@ -149,7 +161,100 @@ Category::Category() {
   providerPagesCreated=false;
 }
 
+Category *CategoryModel::findCategoryById(int id)
+{
+    for (int i = 0; i < m_categories.size(); ++i) {
+        Category *category = m_categories.at(i);
+        if (category->id == id)
+            return category;
+    }
 
+    return 0;
+}
+
+// ----------------- CategoryModel
+
+const int categoryIconSize = 24;
+
+CategoryModel::CategoryModel(QObject *parent)
+    : QAbstractListModel(parent) {
+    QPixmap empty(categoryIconSize, categoryIconSize);
+    empty.fill(Qt::transparent);
+    m_emptyIcon = QIcon(empty);
+}
+
+CategoryModel::~CategoryModel() {
+    qDeleteAll(m_categories);
+}
+
+int CategoryModel::rowCount(const QModelIndex &parent) const {
+    return parent.isValid() ? 0 : m_categories.size();
+}
+
+QVariant CategoryModel::data(const QModelIndex &index, int role) const {
+    switch (role) {
+    case Qt::DisplayRole:
+        return m_categories.at(index.row())->displayName;
+    case Qt::DecorationRole: {
+            QIcon icon = m_categories.at(index.row())->icon;
+            if (icon.isNull())
+                icon = m_emptyIcon;
+            return icon;
+        }
+    }
+    return QVariant();
+}
+
+
+
+void CategoryModel::setPages(const QList<IOptionsPage*> &pages,
+                             const QList<IOptionsPageProvider *> &providers) {
+    beginResetModel();
+
+    // Clear any previous categories
+    qDeleteAll(m_categories);
+    m_categories.clear();
+
+    // Put the pages in categories
+    foreach (IOptionsPage *page, pages) {
+        const int categoryId = page->category();
+        Category *category = findCategoryById(categoryId);
+        if (!category) {
+            category = new Category;
+            category->id = categoryId;
+            category->tabWidget = 0;
+            category->index = -1;
+            m_categories.append(category);
+        }
+        if (category->displayName.isEmpty())
+            category->displayName = page->displayCategory();
+        if (category->icon.isNull())
+            category->icon = page->categoryIcon();
+        category->pages.append(page);
+    }
+    //Populate the pool of IOptionsPages
+    foreach (IOptionsPageProvider *provider, providers) {
+        const int categoryId = provider->category();
+        Category *category = findCategoryById(categoryId);
+        if (!category) {
+            category = new Category;
+            category->id = categoryId;
+            category->tabWidget = 0;
+            category->index = -1;
+            m_categories.append(category);
+        }
+        if (category->displayName.isEmpty())
+            category->displayName = provider->displayCategory();
+        if (category->icon.isNull())
+            category->icon = provider->categoryIcon();
+        category->providers.append(provider);
+    }
+
+    endResetModel();
+}
+
+
+// ----------------- Category List View
 
 CategoryListViewDelegate::CategoryListViewDelegate(QObject *parent) : QStyledItemDelegate(parent) {}
 

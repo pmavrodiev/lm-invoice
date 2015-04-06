@@ -57,7 +57,7 @@ public:
     * Returns the unique id for the category that the options page should be displayed in. 
     * This id is used for sorting the list on the left side of the dialog.
     */
-    int category() const { return m_category; }
+    QString category() const { return m_category; }
     /*
      * Returns the translated category name of the options page. 
      * This name is displayed in the list on the left side of the dialog.
@@ -100,12 +100,12 @@ public:
 protected:
     void setId(int id) { m_id = id; }
     void setDisplayName(const QString &displayName) { m_displayName = displayName; }
-    void setCategory(int category) { m_category = category; }
+    void setCategory(QString category) { m_category = category; }
     void setDisplayCategory(const QString &displayCategory) { m_displayCategory = displayCategory; }
     void setCategoryIcon(const QString &categoryIcon) { m_categoryIcon = categoryIcon; }
 
     int m_id;
-    int m_category;
+    QString m_category;
     QString m_displayName;
     QString m_displayCategory;
     QString m_categoryIcon;
@@ -136,7 +136,7 @@ class IOptionsPageProvider : public QObject
 public:
     IOptionsPageProvider(QObject *parent = 0) : QObject(parent) {}
 
-    int category() const { return m_category; }
+    QString category() const { return m_category; }
     QString displayCategory() const { return m_displayCategory; }
     QIcon categoryIcon() const;
 
@@ -144,11 +144,11 @@ public:
     virtual bool matches(const QString & /* searchKeyWord*/) const = 0;
 
 protected:
-    void setCategory(int category) { m_category = category; }
+    void setCategory(QString category) { m_category = category; }
     void setDisplayCategory(const QString &displayCategory) { m_displayCategory = displayCategory; }
     void setCategoryIcon(const QString &categoryIcon) { m_categoryIcon = categoryIcon; }
 
-    int m_category;
+    QString m_category;
     QString m_displayCategory;
     QString m_categoryIcon;
 };

@@ -7,6 +7,7 @@
 #include <QtGui/QListView>
 #include <QtGui/QStyledItemDelegate>
 #include <QList>
+#include <QtPlugin>
 
 #include "ioptionspage.h"
 
@@ -17,14 +18,34 @@ class QStackedLayout;
 class QEvent;
 class QModelIndex;
 class QStyleOptionViewItem;
-class CategoryListView;
 class QString;
-
-class IOptionsPage;
-class IOptionsPageProvider;
 class QTabWidget;
 class QIcon;
 class QSize;
+class QSet;
+
+class CategoryModel;
+class CategoryListView;
+class IOptionsPage;
+class IOptionsPageProvider;
+
+
+// ----------- SettingsDialog
+
+// Helpers to sort by category. id
+bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2) {
+    return p1->category() < p2->category();
+    //if (p1->category() != p2->category())
+    //    return p1->category().alphabeticallyBefore(p2->category());
+    //return p1->id().alphabeticallyBefore(p2->id());
+}
+
+static inline QList<IOptionsPage*> sortedOptionsPages()
+{
+    QList<IOptionsPage*> rc = ExtensionSystem::PluginManager::getObjects<IOptionsPage>();
+    qStableSort(rc.begin(), rc.end(), optionsPageLessThan);
+    return rc;
+}
 
 
 
@@ -47,10 +68,20 @@ private slots:
   
 private: 
   
-  QLabel *header_label;
+  QLabel *m_headerLabel;
   QHBoxLayout *headerHLayout;
   QStackedLayout *stackedLayout;
   CategoryListView *categoryListView;
+  QSet<IOptionsPage *> m_visitedPages;
+  CategoryModel *m_model;
+  int m_currentCategory;
+  int m_currentPage;
+  QListView *m_categoryList;
+  
+  //contains all options pages available in this dialog
+  const QList<IOptionsPage *> m_pages;
+  QSet<IOptionsPage *> m_visitedPages;
+  
   
   
   void createGui();
@@ -76,6 +107,7 @@ private:
  * 
  */
 
+// ----------------- Category model
 class Category {
 public:
     Category();
@@ -90,6 +122,26 @@ public:
     QList<IOptionsPageProvider *> providers;
     bool providerPagesCreated;
     QTabWidget *tabWidget;
+};
+
+
+class CategoryModel: public QAbstractListModel {
+private:
+    QList<Category *> m_categories;
+    QIcon m_emptyIcon;
+    
+    Category *findCategoryById(int id);
+public:
+    CategoryModel(QObject *parent = 0);
+    ~CategoryModel();
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    void setPages(const QList<IOptionsPage*> &pages,
+                  const QList<IOptionsPageProvider *> &providers);
+    const QList<Category*> &categories() const { return m_categories; }
+  
 };
 
 

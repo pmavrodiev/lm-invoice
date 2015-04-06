@@ -4,13 +4,16 @@ cmake_minimum_required(VERSION 2.6)
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 0)
 
+set(GCC_11 "-std=c++11")
 
 find_package(Qt4 REQUIRED)
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
 
-set(Invoice_Generator_SRCS src/dialogs/SettingsDialog.cpp src/lm-invoice.cpp src/main.cpp)
-set(Invoice_Generator_MOC_HEADERS src/dialogs/SettingsDialog.h src/lm-invoice.h)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_11}" )
+
+set(Invoice_Generator_SRCS src/dialogs/ioptionspage.cpp src/dialogs/SettingsDialog.cpp src/lm-invoice.cpp src/main.cpp)
+set(Invoice_Generator_MOC_HEADERS src/dialogs/ioptionspage.h src/dialogs/SettingsDialog.h src/lm-invoice.h)
 
 qt4_wrap_cpp(Invoice_Generator_SRCS ${Invoice_Generator_MOC_HEADERS})
 

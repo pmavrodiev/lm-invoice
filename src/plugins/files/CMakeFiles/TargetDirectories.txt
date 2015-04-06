@@ -1,0 +1,1 @@
+/home/pmavrodiev/Projects/lm-invoice/src/plugins/files/CMakeFiles/dummy.dir
