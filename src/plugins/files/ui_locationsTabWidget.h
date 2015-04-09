@@ -34,7 +34,7 @@ public:
     Utils::PathChooser *latextemplateChooser;
     QLabel *smcDetectionLabel;
     Utils::PathChooser *membersFileChooser;
-
+    
     void setupUi(QWidget *LocationsTabWidget)
     {
         if (LocationsTabWidget->objectName().isEmpty())

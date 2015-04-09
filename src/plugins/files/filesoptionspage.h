@@ -31,7 +31,7 @@ public:
     
     void saveSettings();
     
-    const FilesSettings &filesSettings() const; //TODO
+    const FilesSettings &filesSettings() const; 
     
 signals:
   void changed(const FilesSettings&);

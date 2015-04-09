@@ -25,7 +25,6 @@ class QFile;
 class SettingsDialog;
 //
 
-
 class lm_invoice : public QMainWindow
 {
 Q_OBJECT

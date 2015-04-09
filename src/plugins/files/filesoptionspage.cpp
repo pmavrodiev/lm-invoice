@@ -47,15 +47,72 @@ FilesOptionsPagePrivate::FilesOptionsPagePrivate(int id,
 }
 
 
-
-
-
-
 // -------------- FilesOptionsPage
 
-FilesOptionsPage::FilesOptionsPage(QObject* parent): IOptionsPage(parent) {
+FilesOptionsPage::FilesOptionsPage(int id,QObject* parent): IOptionsPage(parent) {
   setCategory(QString("C.FileChooser"));
   setDisplayCategory(QCoreApplication::translate("FileChooser", "File Chooser"));
   setCategoryIcon(QLatin1String("images/category_texteditor.png"));
   
+  d_ptr = new FilesOptionsPagePrivate(id,tr("File paths"),this->category());
 }
+
+
+FilesOptionsPage::~FilesOptionsPage() {
+  if (d_ptr)
+    delete d_ptr;
+}
+
+QWidget* FilesOptionsPage::widget() {
+  if (!d_ptr->m_widget) {
+    d_ptr->m_widget = new QWidget;
+    d_ptr->m_ui = new Ui::LocationsTabWidget;
+    //the argument to setupUi is a pointer to the widget
+    //hosting the content of FilesOptionsPage.
+    //setupUi will then position all GUI elements in that widget
+    d_ptr->m_ui->setupUi(d_ptr->m_widget);
+    //connect signals
+    connect(d_ptr->m_ui->latextemplateChooser,
+	    SIGNAL(Utils::PathChooser::pathChanged(const QString &path)),
+	    &d_ptr->m_value,
+	    SLOT(setLatexTemplate(const QString &path))
+ 	  );
+    connect(d_ptr->m_ui->membersFileChooser,
+	    SIGNAL(Utils::PathChooser::pathChanged(const QString &path)),
+	    &d_ptr->m_value,
+	    SLOT(setMembersTemplate(const QString &path))
+ 	  );
+    d_ptr->m_lastValue=d_ptr->m_value;
+  }
+  return d_ptr->m_widget;
+}
+
+void FilesOptionsPage::apply() {
+  if (!d_ptr->m_ui) //page was never shown
+    return;
+  saveSettings();  
+}
+
+void FilesOptionsPage::saveSettings() {
+  if (d_ptr->m_value != d_ptr->m_lastValue) {
+    d_ptr->m_value = d_ptr->m_lastValue;
+    //TODO plugin manager
+    d_ptr->m_value.toSettings(d_ptr->m_settingsGroup,Core::PluginManager::getSettings());
+  }
+}
+
+void FilesOptionsPage::finish() {
+  delete d_ptr->m_widget;
+  if (!d_ptr->m_ui) // page was never shown
+        return;
+  delete d_ptr->m_ui;
+  d_ptr->m_ui = 0;
+  // If changes were applied, these are equal. Otherwise restores last value.
+  d_ptr->m_value = d_ptr->m_lastValue;
+}
+
+const FilesSettings& FilesOptionsPage::filesSettings() const {
+  return d_ptr->m_value;
+}
+
+

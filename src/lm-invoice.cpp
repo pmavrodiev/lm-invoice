@@ -26,6 +26,8 @@
 #include <QHash>
 #include <QSettings>
 
+
+
 void lm_invoice::closing() {
   qDebug() << "In about to quit";
 }
