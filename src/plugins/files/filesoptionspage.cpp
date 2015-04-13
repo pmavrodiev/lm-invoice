@@ -1,5 +1,6 @@
 #include "filesoptionspage.h"
 #include "filessettings.h"
+#include "../../libs/pluginmanager/pluginmanager.h"
 #include "ui_locationsTabWidget.h"
 
 
@@ -34,16 +35,13 @@ FilesOptionsPagePrivate::FilesOptionsPagePrivate(int id,
   
   bool settingsFound=false;
   
-  //TODO - implement plugin manager and work with global settings
-  //for now work with default settings
-  QSettings *settings = new QSettings();  
+  QSettings *settings = ExtensionSystem::PluginManager::getGlobalSettings();
   settingsFound = m_value.fromSettings(m_settingsGroup,settings);
   if (!settingsFound) {
-    //TODO apply defaults
+    m_value.setLatexTemplate("../../../resources/files/Mitgliedschaft 2015");
+    m_value.setMembersTemplate("../../../resources/files/latex.template");
   }
-  else {}//TODO
   m_lastValue=m_value;
-  delete settings;
 }
 
 
@@ -96,8 +94,7 @@ void FilesOptionsPage::apply() {
 void FilesOptionsPage::saveSettings() {
   if (d_ptr->m_value != d_ptr->m_lastValue) {
     d_ptr->m_value = d_ptr->m_lastValue;
-    //TODO plugin manager
-    d_ptr->m_value.toSettings(d_ptr->m_settingsGroup,Core::PluginManager::getSettings());
+    d_ptr->m_value.toSettings(d_ptr->m_settingsGroup,ExtensionSystem::PluginManager::getGlobalSettings());
   }
 }
 

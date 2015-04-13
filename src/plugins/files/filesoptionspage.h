@@ -15,7 +15,7 @@ class FilesSettings;
 
 
 /**
- * An abstract options page in the Text Editor category.
+ * An abstract options page in the File Chooser category.
  */
 class FILES_EXPORT FilesOptionsPage : public IOptionsPage
 {
@@ -41,6 +41,7 @@ private slots:
   void latexTemplateChanged();
   void membersTemplateChanged();
   
+private:
   FilesOptionsPagePrivate *d_ptr;
 };
 
