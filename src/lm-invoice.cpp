@@ -140,9 +140,11 @@ void lm_invoice::createActions() {
 /***
  *** SLOTS 
  */
+
 void lm_invoice::showFileDialog() {
   return openMembFile(QFileDialog::getOpenFileName(this));
 }
+
 
 void lm_invoice::saveMembFile() {
   std::cout<<"Save"<<std::endl;
@@ -153,7 +155,8 @@ void lm_invoice::openSettingsDialog() {
   if (!sd)
     sd=SettingsDialog::getSettingsDialog(this,0);
   //this is a blocking call
-  QDialog::DialogCode rv = sd->execDialog();
+  //QDialog::DialogCode rv = sd->execDialog();
+  sd->execDialog();
   //std::cout<<"Configure InvoiceGenerator"<<std::endl;  
 }
 
@@ -174,7 +177,9 @@ void lm_invoice::genButtonPressed() {
 /***
  *** CORE FUNCTIONS
  */
+
 void lm_invoice::openMembFile(QString filename) {
+  /*
   if (!filename.isEmpty()) {
     //load the csv file    
     std::cout<<filename.toStdString()<<std::endl;
@@ -208,8 +213,9 @@ void lm_invoice::openMembFile(QString filename) {
     // TODO handle this exception      
     }
     membershipFile->close();
-  }
-  qDebug() << "Open";
+  }*/
+  qDebug() << "Open Membership file";
+  
 }
 
 void lm_invoice::addTableRow(QHash<QString, QTableWidgetItem* > row) {
@@ -253,7 +259,7 @@ bool lm_invoice::maybeSave() {
                         "Do you want to save your changes?"),
                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
   if (ret == QMessageBox::Save) {
-    writeSettings();
+    //writeSettings();
     return true;
   }
   else if (ret == QMessageBox::Cancel)
@@ -269,7 +275,7 @@ bool lm_invoice::maybeSave() {
 lm_invoice::lm_invoice() {
     //make sure pointers are properly initialized
     sd=0;
-    pluginFiles = new Files();
+    pluginFiles = new Files(this);
     //init gui elements
     createActions();  
     createLayout();

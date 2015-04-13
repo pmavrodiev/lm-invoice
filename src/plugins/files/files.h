@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class FileSettings;
+class FilesSettings;
 class FilesPrivate;
 
 /**
@@ -16,11 +16,11 @@ class Files : public QObject{
 public:
   explicit Files(QObject *parent);
   ~Files();
-  const FileSettings &fileSettings();
+  //FileSettings &fileSettings();
 private:
   FilesPrivate *d;
-signals:
-  void fileSettingsChanged(const FileSettings &);
+public slots:
+  void fileSettingsChanged(const FilesSettings &);
   
   
 };

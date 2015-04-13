@@ -31,15 +31,15 @@ public:
     
     void saveSettings();
     
-    const FilesSettings &filesSettings() const; 
+    FilesSettings &filesSettings(); 
     
 signals:
   void changed(const FilesSettings&);
   
 private slots:
-  void delayedChange();
-  void latexTemplateChanged();
-  void membersTemplateChanged();
+  void delayedChange() {};
+  void latexTemplateChanged() {};
+  void membersTemplateChanged() {};
   
 private:
   FilesOptionsPagePrivate *d_ptr;

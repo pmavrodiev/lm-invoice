@@ -1,6 +1,7 @@
 #include "files.h"
 #include "filesoptionspage.h"
 #include "filessettings.h"
+#include <QDebug>
 
 #include "../../libs/pluginmanager/pluginmanager.h"
 
@@ -29,7 +30,7 @@ Files::Files(QObject* parent): QObject(parent) {
   ExtensionSystem::PluginManager::addObject(d->m_filesoptionpage);
   
   connect(d->m_filesoptionpage, SIGNAL(changed(const FilesSettings &)),
-	  this,SIGNAL(fileSettingsChanged(const FileSettings&)));
+	  this,SLOT(fileSettingsChanged(const FilesSettings&)));
 }
 
 Files::~Files() {
@@ -38,9 +39,14 @@ Files::~Files() {
     delete d;  
 }
 
-const FileSettings& Files::fileSettings() {
- return d->m_filesoptionpage->filesSettings();
+void Files::fileSettingsChanged(const FilesSettings&) {
+  qDebug() << "Files::fileSettingsChanged";
 }
+
+//FileSettings &Files::fileSettings() {
+// return d->m_filesoptionpage->filesSettings();
+//}
+
 
 
 

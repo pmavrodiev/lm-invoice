@@ -7,7 +7,10 @@
 #include <QtGui/QListView>
 #include <QtGui/QStyledItemDelegate>
 #include <QList>
+#include <QSet>
 #include <QtPlugin>
+#include <QDebug>
+#include <functional>
 
 #include "ioptionspage.h"
 #include "../libs/pluginmanager/pluginmanager.h"
@@ -23,16 +26,16 @@ class QString;
 class QTabWidget;
 class QIcon;
 class QSize;
-class QSet;
 
 class CategoryModel;
 class CategoryListView;
 class IOptionsPage;
 class IOptionsPageProvider;
+class Category;
 
 
 
-
+/*
 // Helpers to sort by category. id
 bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2) {
     return p1->category() < p2->category();
@@ -41,14 +44,14 @@ bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2) {
     //return p1->id().alphabeticallyBefore(p2->id());
 }
 
-static inline QList<IOptionsPage*> sortedOptionsPages()
+inline QList<IOptionsPage*> sortedOptionsPages()
 {
     QList<IOptionsPage*> rc = ExtensionSystem::PluginManager::getObjects<IOptionsPage>();
     qStableSort(rc.begin(), rc.end(), optionsPageLessThan);
     return rc;
 }
 
-#include <functional>
+*/
 
 class SettingsDialog: public QDialog {
 Q_OBJECT
@@ -57,6 +60,8 @@ public:
     SettingsDialog(QWidget *parent);
     virtual ~SettingsDialog(); 
     
+    static SettingsDialog *getSettingsDialog(QWidget *parent,int id_initialPage);
+    void execDialog();
     //QDialog::DialogCode showDialog();
     
 private slots:
@@ -66,7 +71,7 @@ private slots:
   int exec();
   //void open();
   void reject();
-  void currentChanged(const QModelIndex &current);
+  void currentChanged(const QModelIndex &current) {qDebug() << "current changed";};
   void currentTabChanged(int);
   
 private: 
@@ -75,14 +80,13 @@ private:
   QHBoxLayout *headerHLayout;
   QStackedLayout *stackedLayout;
   CategoryListView *categoryListView;
-  QSet<IOptionsPage *> m_visitedPages;
   CategoryModel *m_model;
   int m_currentCategory;
   int m_currentPage;
   QListView *m_categoryList;
   
   //contains all options pages available in this dialog
-  const QList<IOptionsPage *> m_pages;
+  QList<IOptionsPage *> m_pages;
   QSet<IOptionsPage *> m_visitedPages;
   
   bool m_running;
@@ -91,7 +95,7 @@ private:
   
   
   void createGui();
-  void execDialog();
+  
   //void accept();
   //void reject();
   //void apply();
@@ -104,7 +108,7 @@ private:
   //void updateEnabledTabs(Category *category, const QString &searchText);
   void ensureCategoryWidget(Category *category);
   void disconnectTabWidgets();
-  static SettingsDialog *getSettingsDialog(QWidget *parent,int id_initialPage);
+  
 
 
   

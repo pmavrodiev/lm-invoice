@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QSettings>
+#include <QStringList>
 
 void FilesSettings::clear() {
   m_latextemplate=QString::null;
@@ -14,7 +15,7 @@ void FilesSettings::toSettings(const QString& category, QSettings* s) {
   s->beginGroup(category);
   s->setValue(QLatin1String("LaTeX Template"),m_latextemplate);
   s->setValue(QLatin1String("Members Template"),m_membersfile);
-  s->endGroup(category);
+  s->endGroup();
 }
 
 bool FilesSettings::fromSettings(const QString& category, const QSettings* s) {

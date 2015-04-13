@@ -1,12 +1,15 @@
 #include "filesoptionspage.h"
 #include "filessettings.h"
 #include "../../libs/pluginmanager/pluginmanager.h"
+#include "../../libs/utils/pathchooser.h"
 #include "ui_locationsTabWidget.h"
 
 
 #include <QCoreApplication>
 #include <QPointer>
 #include <QSettings>
+
+
 
 // -------------- FilesOptionsPagePrivate
 
@@ -15,8 +18,8 @@ public:
   FilesOptionsPagePrivate(int, const QString, const QString);
   ~FilesOptionsPagePrivate() {};
   int m_id;
-  const QString m_displayName;
-  const QString m_settingsGroup;
+  QString m_displayName;
+  QString m_settingsGroup;
   
   FilesSettings m_value;
   FilesSettings m_lastValue;
@@ -26,8 +29,8 @@ public:
 };
 
 FilesOptionsPagePrivate::FilesOptionsPagePrivate(int id, 
-						    const QString displayName, 
-						    const QString settingsGroup) {
+						    QString displayName, 
+						    QString settingsGroup) {
   m_id=id;
   m_displayName=displayName;
   m_settingsGroup=settingsGroup;
@@ -46,6 +49,8 @@ FilesOptionsPagePrivate::FilesOptionsPagePrivate(int id,
 
 
 // -------------- FilesOptionsPage
+
+
 
 FilesOptionsPage::FilesOptionsPage(int id,QObject* parent): IOptionsPage(parent) {
   setCategory(QString("C.FileChooser"));
@@ -71,14 +76,14 @@ QWidget* FilesOptionsPage::widget() {
     d_ptr->m_ui->setupUi(d_ptr->m_widget);
     //connect signals
     connect(d_ptr->m_ui->latextemplateChooser,
-	    SIGNAL(Utils::PathChooser::pathChanged(const QString &path)),
+	    SIGNAL(pathChanged(const QString &path)),
 	    &d_ptr->m_value,
-	    SLOT(setLatexTemplate(const QString &path))
+	    SLOT(FileSettings::setLatexTemplate(const QString &path))
  	  );
     connect(d_ptr->m_ui->membersFileChooser,
-	    SIGNAL(Utils::PathChooser::pathChanged(const QString &path)),
+	    SIGNAL(pathChanged(const QString &path)),
 	    &d_ptr->m_value,
-	    SLOT(setMembersTemplate(const QString &path))
+	    SLOT(FileSettings::setMembersTemplate(const QString &path))
  	  );
     d_ptr->m_lastValue=d_ptr->m_value;
   }
@@ -108,8 +113,9 @@ void FilesOptionsPage::finish() {
   d_ptr->m_value = d_ptr->m_lastValue;
 }
 
-const FilesSettings& FilesOptionsPage::filesSettings() const {
-  return d_ptr->m_value;
+FilesSettings& FilesOptionsPage::filesSettings() {
+  FilesSettings& rv = d_ptr->m_value;
+  return rv;
 }
 
 

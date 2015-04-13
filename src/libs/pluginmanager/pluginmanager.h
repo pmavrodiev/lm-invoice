@@ -5,9 +5,9 @@
 #include <QStringList>
 #include <qglobal.h>
 #include <QReadWriteLock>
+#include <QSettings>
 
 class QTextStream;
-class QSettings;
 
 namespace ExtensionSystem {
 
@@ -42,8 +42,8 @@ class PluginManager: public QObject {
    //Object pool operations
    static void addObject(QObject *obj);
    static void removeObject(QObject *obj);
-   static QList<QObject *> allObjects() {return m_allObjects;};
-   static QReadWriteLock *listLock() {return &m_lock;};
+   static QList<QObject *> allObjects() {return PluginManager::instance()->m_allObjects;};
+   static QReadWriteLock *listLock() {return &PluginManager::instance()->m_lock;};
    //cast only
    template <typename T> static QList<T *> getObjects() {
         QReadLocker lock(listLock());
@@ -117,11 +117,11 @@ class PluginManager: public QObject {
     //static void setSettings(QSettings *settings);
     //static QSettings *getSettings() {return settings;};
     static void setGlobalSettings(QSettings *settings);
-    static QSettings *getGlobalSettings() {return m_globalSettings;};
+    static QSettings *getGlobalSettings() {return PluginManager::instance()->m_globalSettings;};
     static void writeGlobalSettings();
-    static void saveGlobalSettings() { m_globalSettings->sync();};
+    static void saveGlobalSettings() { PluginManager::instance()->m_globalSettings->sync();};
 
-    static QList<PluginSpec *> plugings() {return pluginSpecs;};
+    static QList<PluginSpec *> plugings() {return PluginManager::instance()->pluginSpecs;};
     static QString platformName();
     
     

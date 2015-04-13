@@ -3,7 +3,8 @@
 #include <QTextStream>
 #include <QSettings>
 #include <functional>
-
+#include <QDebug>
+#include <QFile>
 
 #include "../utils/algorithm.h"
 #include "../utils/qtcassert.h"
@@ -12,8 +13,25 @@ using namespace ExtensionSystem;
 
 const char C_DEFAULTENABLED[] = "Plugins/DefaultEnabled";
 
+static PluginManager *m_instance=0;
+
+PluginManager::PluginManager(): QObject() {
+  m_globalSettings=0;
+  m_instance=this;
+}
+
+PluginManager::~PluginManager() {
+  if (m_globalSettings)
+    delete m_globalSettings;
+}
+
+PluginManager* PluginManager::instance() {
+  return m_instance;
+}
+
+
 QObject *PluginManager::getObjectByName(const QString &name) {
-    QReadLocker lock(&m_lock);
+    QReadLocker lock(&PluginManager::instance()->m_lock);
     QList<QObject *> all = allObjects();
     foreach (QObject *obj, all) {
         if (obj->objectName() == name)
@@ -24,7 +42,7 @@ QObject *PluginManager::getObjectByName(const QString &name) {
 
 QObject *PluginManager::getObjectByClassName(const QString &className) {
     const QByteArray ba = className.toUtf8();
-    QReadLocker lock(&m_lock);
+    QReadLocker lock(&PluginManager::instance()->m_lock);
     QList<QObject *> all = allObjects();
     foreach (QObject *obj, all) {
         if (obj->inherits(ba.constData()))
@@ -38,12 +56,12 @@ void PluginManager::addObject(QObject *obj) {
        qWarning() << "PluginManager::addObject(): trying to add null object";
        return;
     }
-    if (m_allObjects.contains(obj)) {
+    if (PluginManager::instance()->m_allObjects.contains(obj)) {
        qWarning() << "PluginManagerPrivate::addObject(): trying to add duplicate object";
        return;
     }
-    m_allObjects.append(obj);
-    emit objectAdded(obj);
+    PluginManager::instance()->m_allObjects.append(obj);
+    emit instance()->objectAdded(obj);
 }
 
 void PluginManager::removeObject(QObject *obj) {
@@ -51,40 +69,35 @@ void PluginManager::removeObject(QObject *obj) {
       qWarning() << "PluginManager::removeObject(): trying to remove null object";
       return;
     }
-    if (!m_allObjects.contains(obj)) {
+    if (!PluginManager::instance()->m_allObjects.contains(obj)) {
        qWarning() << "PluginManager::removeObject(): object not in list:"
             << obj << obj->objectName();
         return;
     }
-    m_allObjects.removeAll(obj);
-    emit objectRemoved(obj);
+    PluginManager::instance()->m_allObjects.removeAll(obj);
+    emit instance()->objectRemoved(obj);
 }
 
 void PluginManager::setGlobalSettings(QSettings *s) {
-  if (m_globalSettings)
-    delete m_globalSettings;
-  m_globalSettings=s;
-  if (m_globalSettings)
-    m_globalSettings->setParent(this);
+  if (PluginManager::instance()->m_globalSettings)
+    delete PluginManager::instance()->m_globalSettings;
+  PluginManager::instance()->m_globalSettings=s;
+  //if (m_globalSettings)
+    //m_globalSettings->setParent(this);
 }
 
 void PluginManager::writeGlobalSettings() {
-    if (!m_globalSettings)
+    if (!PluginManager::instance()->m_globalSettings)
       return;    
     QStringList defaultEnabledPlugins;
     
-    foreach (PluginSpec *spec, pluginSpecs) {
+    foreach (PluginSpec *spec, PluginManager::instance()->pluginSpecs) {
       defaultEnabledPlugins.append(spec->getName());      
     }
-    m_globalSettings->setValue(QLatin1String(C_DEFAULTENABLED),defaultEnabledPlugins);
+    PluginManager::instance()->m_globalSettings->setValue(QLatin1String(C_DEFAULTENABLED),defaultEnabledPlugins);
 }
 
 
-
-QString PluginManager::platformName() {
-    static const QString result = getPlatformName();
-    return result;
-}
 
 static inline QString getPlatformName() {
 #if defined(Q_OS_MAC)
@@ -145,4 +158,11 @@ static inline QString getPlatformName() {
     return result;
 #endif // Q_OS_WIN
     return QLatin1String("Unknown");
+}
+
+
+
+QString PluginManager::platformName() {
+    static const QString result = getPlatformName();
+    return result;
 }

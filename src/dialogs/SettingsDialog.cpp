@@ -43,9 +43,10 @@ SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
   categoryListView = new CategoryListView(parent);
   
   m_model = new CategoryModel(/*parent=*/this);
-  m_pages = sortedOptionsPages();
+  //m_pages = sortedOptionsPages();
+  m_pages = ExtensionSystem::PluginManager::getObjects<IOptionsPage>();
   
-  categoryListView = new CategoryListView();
+
   m_running=false;
   m_applied=false;
   m_finished=false;
@@ -132,7 +133,7 @@ void SettingsDialog::ensureCategoryWidget(Category* category) {
     category->providerPagesCreated = true;    
   }
   
-  qStableSort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
+  //qStableSort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
   
   QTabWidget *tabWidget = new QTabWidget;
   for (int j = 0; j < category->pages.size(); ++j) {
@@ -140,7 +141,7 @@ void SettingsDialog::ensureCategoryWidget(Category* category) {
      QWidget *widget = page->widget();
      tabWidget->addTab(widget, page->displayName());
   }
-  connect(tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
+  connect(tabWidget,SIGNAL(currentChanged(int)),
 	  this,SLOT(currentTabChanged(int)));
   
   category->tabWidget=tabWidget;
@@ -151,7 +152,7 @@ void SettingsDialog::ensureCategoryWidget(Category* category) {
 void SettingsDialog::disconnectTabWidgets() {
     foreach (Category *category, m_model->categories()) {
         if (category->tabWidget)
-            disconnect(tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
+            disconnect(category->tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
 		       this,SLOT(currentTabChanged(int)));
     }
 }
@@ -165,7 +166,7 @@ void SettingsDialog::currentTabChanged(int index) {
     //    return;
 
     // Remember the current tab and mark it as visited
-    const Category *category = m_model->categories().at(m_categoryList->currentIndex());
+    const Category *category = m_model->categories().at(m_categoryList->currentIndex().row());
     IOptionsPage *page = category->pages.at(index);
     m_currentPage = page->id();
     m_visitedPages.insert(page);
@@ -186,8 +187,11 @@ void SettingsDialog::showPage(int pageId) {
   // handle the case of 'show last page'
   int initialPageId=pageId;
   if (initialPageId == -1) {
-    QSettings *settings = ExtensionSystem::PluginManager::settings();
-    initialPageId = settings->value(QLatin1String(pageKeyC));    
+    QSettings *settings = ExtensionSystem::PluginManager::getGlobalSettings();
+    bool ok;
+    initialPageId = settings->value(QLatin1String(pageKeyC)).toInt(&ok);
+    if (!ok)
+      initialPageId=-1;
   }
   
   int initialCategoryIndex = -1;
@@ -220,12 +224,10 @@ void SettingsDialog::showPage(int pageId) {
           }
       }
   }
-
-    if (initialPageId != -1 && initialPageIndex == -1)
-        return; // Unknown settings page, probably due to missing plugin.
-    
-    if (initialPageIndex != -1)
-          categories.at(initialCategoryIndex)->tabWidget->setCurrentIndex(initialPageIndex);
+  if (initialPageId != -1 && initialPageIndex == -1)
+      return; // Unknown settings page, probably due to missing plugin.
+  if (initialPageIndex != -1)
+      categories.at(initialCategoryIndex)->tabWidget->setCurrentIndex(initialPageIndex);
 
   
 }
@@ -374,7 +376,8 @@ void CategoryModel::setPages(const QList<IOptionsPage*> &pages,
 
     // Put the pages in categories
     foreach (IOptionsPage *page, pages) {
-        const int categoryId = page->category();
+        //const int categoryId = page->category();
+	const int categoryId = page->id();
         Category *category = findCategoryById(categoryId);
         if (!category) {
             category = new Category;

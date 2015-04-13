@@ -137,7 +137,7 @@ class IOptionsPageProvider : public QObject
 public:
     IOptionsPageProvider(QObject *parent = 0) : QObject(parent) {}
 
-    QString category() const { return m_category; }
+    int category() const { return m_category; }
     QString displayCategory() const { return m_displayCategory; }
     QIcon categoryIcon() const;
 
@@ -145,11 +145,11 @@ public:
     virtual bool matches(const QString & /* searchKeyWord*/) const = 0;
 
 protected:
-    void setCategory(QString category) { m_category = category; }
+    void setCategory(int category) { m_category = category; }
     void setDisplayCategory(const QString &displayCategory) { m_displayCategory = displayCategory; }
     void setCategoryIcon(const QString &categoryIcon) { m_categoryIcon = categoryIcon; }
 
-    QString m_category;
+    int m_category;
     QString m_displayCategory;
     QString m_categoryIcon;
 };
