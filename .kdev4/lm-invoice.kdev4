@@ -1,3 +1,6 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x14\x00l\x00m\x00-\x00i\x00n\x00v\x00o\x00i\x00c\x00e)
+
 [CMake]
 Build Directory Count=1
 Current Build Directory Index=0
@@ -10,6 +13,11 @@ CMake Binary=file:///usr/bin/cmake
 Environment Profile=
 Extra Arguments=
 Install Directory=file:///usr/local
+
+[CustomDefinesAndIncludes][ProjectPath0]
+Defines=\x00\x00\x00\x00
+Includes=\x00\x00\x00\x00
+Path=.
 
 [Defines And Includes][Compiler]
 Name=GCC
@@ -30,12 +38,12 @@ Arguments=
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=
-Executable=file:///home/pmavrodiev/Projects/lm-invoice/
+Executable=file:///home/pmavrodiev/Projects/lm-invoice/build/Invoice_Generator
 External Terminal=konsole --noclose --workdir %workdir -e %exe
-Project Target=lm-invoice,lm-invoice
+Project Target=
 Use External Terminal=false
 Working Directory=
-isExecutable=false
+isExecutable=true
 
 [Project]
 VersionControlSupport=kdevgit

@@ -151,10 +151,10 @@ void lm_invoice::saveMembFile() {
 void lm_invoice::openSettingsDialog() {  
   //reuse previous dialogs if any
   if (!sd)
-    sd=new SettingsDialog(root);
+    sd=SettingsDialog::getSettingsDialog(this,0);
   //this is a blocking call
-  QDialog::DialogCode rv = sd->showDialog();  
-  std::cout<<"Configure InvoiceGenerator"<<std::endl;  
+  QDialog::DialogCode rv = sd->execDialog();
+  //std::cout<<"Configure InvoiceGenerator"<<std::endl;  
 }
 
 void lm_invoice::showAbout() {
@@ -242,29 +242,8 @@ void lm_invoice::closeEvent(QCloseEvent *event) {
 /***
  *** UTILITY FUNCTIONS
  */
-void lm_invoice::writeSettings() {
-    //save any changes to the location of the membership file 
-    //and the latex template as new settings
-    QSettings settings;
-    //make sure files have been loaded
-    if (membershipFile!=0 || latexTemplate!=0) {
-      settings.beginGroup("MainFiles");
-      if (membershipFile) 
-	settings.setValue("membership file",membershipFile->fileName());
-      if (latexTemplate)
-	settings.setValue("latex template",latexTemplate->fileName());
-      settings.endGroup();
-    }
-}
 
-void lm_invoice::readSettings() {
-  QSettings settings;
-  settings.beginGroup("MainFiles");
-  QString membFile = settings.value("membership file","../resources/files/Mitgliedschaft 2015.csv").toString();
-   this->openMembFile(membFile);
-  settings.endGroup();
-  
-}
+
 /*******/
 
 bool lm_invoice::maybeSave() {
@@ -289,26 +268,23 @@ bool lm_invoice::maybeSave() {
  */
 lm_invoice::lm_invoice() {
     //make sure pointers are properly initialized
-    membershipFile=0;latexTemplate=0;sd=0;
+    sd=0;
+    pluginFiles = new Files();
     //init gui elements
     createActions();  
     createLayout();
     createToolBars();
     //
-    readSettings();
+    //readSettings();
 
 }
 
 lm_invoice::~lm_invoice() {  
   qDebug() << "In ~lm_invoice";
-  if (membershipFile)
-    delete membershipFile;
-  if (latexTemplate)
-    delete latexTemplate;  
-  if (sd) {
-    qDebug() << sd;
+  if (sd) 
     delete sd;
-  }
+  if (pluginFiles)
+    delete pluginFiles;
   qDebug() << "Out of ~lm_invoice";
 }
 /*******/

@@ -4,6 +4,8 @@
 #include <QtGui/QMainWindow>
 #include <QList>
 
+#include "plugins/files/files.h"
+
 //forward declaration of QT components
 class QAction;
 class QMenu;
@@ -48,8 +50,9 @@ private slots:
 
 private:
     //File pointers to resource files
-    QFile *membershipFile;
-    QFile *latexTemplate;
+    //QFile *membershipFile;
+    //QFile *latexTemplate;
+    Files *pluginFiles;
     //QT elements
     QWidget *root;
     QWidget *gridLayoutWidget;

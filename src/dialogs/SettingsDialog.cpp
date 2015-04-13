@@ -22,8 +22,13 @@
 #include <QModelIndex>
 #include <QString>
 #include <QtGui/QIcon>
+#include <QItemSelectionModel>
 
 
+static QPointer<SettingsDialog> m_instance=0;
+
+static const char pageKeyC[] = "General/LastPreferencePage";
+const int categoryIconSize = 24;
 
 /*Some methods to construct this dialog (e.g. fonts, Gui elements) 
  * have been adopted from QCreator's Settings dialog:
@@ -38,7 +43,26 @@ SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
   categoryListView = new CategoryListView(parent);
   
   m_model = new CategoryModel(/*parent=*/this);
-  m_pages = 0;asd
+  m_pages = sortedOptionsPages();
+  
+  categoryListView = new CategoryListView();
+  m_running=false;
+  m_applied=false;
+  m_finished=false;
+  
+  createGui();
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  
+  m_model->setPages(m_pages,ExtensionSystem::PluginManager::getObjects<IOptionsPageProvider>());
+  categoryListView->setIconSize(QSize(categoryIconSize,categoryIconSize));
+  //categoryListView->setModel(m_proxyModel);
+  categoryListView->setSelectionMode(QAbstractItemView::SingleSelection);
+  categoryListView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  
+  connect(categoryListView->selectionModel(),SIGNAL(QItemSelectionModel::currentRowChanged()),
+	  this, SLOT(currentChanged(const QModelIndex &)));
+  
+  categoryListView->setFocus();
 }
 
 
@@ -48,40 +72,174 @@ SettingsDialog::~SettingsDialog() {
   //delete headerHLayout;
   delete stackedLayout;
   delete categoryListView;
+  if (m_instance)
+    delete m_instance;
   qDebug() << "Out of ~SettingsDialog";
 }
 
 
 void SettingsDialog::done(int val) {
+  QSettings *settings = ExtensionSystem::PluginManager::getGlobalSettings();
+  settings->setValue(QLatin1String(pageKeyC), m_currentPage);
+
+  ExtensionSystem::PluginManager::saveGlobalSettings(); // save all settings 
   QDialog::done(val);
 }
 
 void SettingsDialog::accept() {
   qDebug() << "Pressed Accept";
+  if (m_finished)
+      return;
+  m_finished = true;
+  disconnectTabWidgets();
+  m_applied = true;
+  foreach (IOptionsPage *page, m_visitedPages)
+      page->apply();
+  foreach (IOptionsPage *page, m_pages)
+      page->finish();
+  
   done(QDialog::Accepted);
 }
 
 void SettingsDialog::reject() {
   qDebug() << "Pressed Reject";
+  
+  if (m_finished)
+     return;
+  m_finished = true;
+  disconnectTabWidgets();
+  foreach (IOptionsPage *page, m_pages)
+     page->finish();
+  
   done(QDialog::Rejected);
 }
 
 void SettingsDialog::apply() {
   qDebug() << "Pressed Apply";
+  
+  foreach (IOptionsPage *page, m_visitedPages)
+     page->apply();
+  m_applied = true;
 }
 
-QDialog::DialogCode SettingsDialog::showDialog() {
-  createGui();
-  qDebug() << windowFlags();
-  //remove the WindowContextHelpButtonHint by unsettings
-  //the corresponding bits. In other words the help button
-  //in the dialog title bar is gone  
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+void SettingsDialog::ensureCategoryWidget(Category* category) {
+  if (category->tabWidget != 0)
+    return;
   
-  m_model->setPages();
+  if (!category->providerPagesCreated) {
+    foreach (const IOptionsPageProvider *provider, category->providers)
+            category->pages += provider->pages();
+    category->providerPagesCreated = true;    
+  }
   
-  exec();
+  qStableSort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
+  
+  QTabWidget *tabWidget = new QTabWidget;
+  for (int j = 0; j < category->pages.size(); ++j) {
+     IOptionsPage *page = category->pages.at(j);
+     QWidget *widget = page->widget();
+     tabWidget->addTab(widget, page->displayName());
+  }
+  connect(tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
+	  this,SLOT(currentTabChanged(int)));
+  
+  category->tabWidget=tabWidget;
+  category->index = stackedLayout->addWidget(tabWidget);
+  
 }
+
+void SettingsDialog::disconnectTabWidgets() {
+    foreach (Category *category, m_model->categories()) {
+        if (category->tabWidget)
+            disconnect(tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
+		       this,SLOT(currentTabChanged(int)));
+    }
+}
+
+void SettingsDialog::currentTabChanged(int index) {
+    if (index == -1)
+        return;
+
+    //const QModelIndex modelIndex = m_proxyModel->mapToSource(m_categoryList->currentIndex());
+    //if (!modelIndex.isValid())
+    //    return;
+
+    // Remember the current tab and mark it as visited
+    const Category *category = m_model->categories().at(m_categoryList->currentIndex());
+    IOptionsPage *page = category->pages.at(index);
+    m_currentPage = page->id();
+    m_visitedPages.insert(page);
+}
+
+void SettingsDialog::execDialog() {
+   if (!m_running) {
+        m_running = true;
+        m_finished = false;
+        exec();
+        m_running = false;
+        m_instance = 0;
+	deleteLater();
+   }
+}
+
+void SettingsDialog::showPage(int pageId) {
+  // handle the case of 'show last page'
+  int initialPageId=pageId;
+  if (initialPageId == -1) {
+    QSettings *settings = ExtensionSystem::PluginManager::settings();
+    initialPageId = settings->value(QLatin1String(pageKeyC));    
+  }
+  
+  int initialCategoryIndex = -1;
+  int initialPageIndex = -1;
+
+  const QList<Category*> &categories = m_model->categories();
+  if (initialPageId != -1) {
+      // First try categories without lazy items.
+      for (int i = 0; i < categories.size(); ++i) {
+         Category *category = categories.at(i);
+         if (category->providers.isEmpty()) {  // no providers
+             ensureCategoryWidget(category);
+             if (category->findPageById(initialPageId, &initialPageIndex)) {
+                 initialCategoryIndex = i;
+                 break;
+             }
+         }
+      }
+      if (initialPageIndex == -1) {
+          // On failure, expand the remaining items.
+          for (int i = 0; i < categories.size(); ++i) {
+              Category *category = categories.at(i);
+              if (!category->providers.isEmpty()) { // has providers
+                  ensureCategoryWidget(category);
+                  if (category->findPageById(initialPageId, &initialPageIndex)) {
+                      initialCategoryIndex = i;
+                      break;
+                  }
+              }
+          }
+      }
+  }
+
+    if (initialPageId != -1 && initialPageIndex == -1)
+        return; // Unknown settings page, probably due to missing plugin.
+    
+    if (initialPageIndex != -1)
+          categories.at(initialCategoryIndex)->tabWidget->setCurrentIndex(initialPageIndex);
+
+  
+}
+
+
+SettingsDialog* SettingsDialog::getSettingsDialog(QWidget* parent, int id_initialPage) {
+  if (!m_instance) 
+      m_instance = new SettingsDialog(parent);
+  m_instance->showPage(id_initialPage);
+  return m_instance;  
+
+}
+
+
 
 int SettingsDialog::exec() {
   return QDialog::exec();
@@ -174,7 +332,6 @@ Category *CategoryModel::findCategoryById(int id)
 
 // ----------------- CategoryModel
 
-const int categoryIconSize = 24;
 
 CategoryModel::CategoryModel(QObject *parent)
     : QAbstractListModel(parent) {

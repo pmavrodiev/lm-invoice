@@ -10,6 +10,7 @@
 #include <QtPlugin>
 
 #include "ioptionspage.h"
+#include "../libs/pluginmanager/pluginmanager.h"
 
 //forward declaration of classes
 class QLabel;
@@ -30,7 +31,7 @@ class IOptionsPage;
 class IOptionsPageProvider;
 
 
-// ----------- SettingsDialog
+
 
 // Helpers to sort by category. id
 bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2) {
@@ -47,7 +48,7 @@ static inline QList<IOptionsPage*> sortedOptionsPages()
     return rc;
 }
 
-
+#include <functional>
 
 class SettingsDialog: public QDialog {
 Q_OBJECT
@@ -56,7 +57,7 @@ public:
     SettingsDialog(QWidget *parent);
     virtual ~SettingsDialog(); 
     
-    QDialog::DialogCode showDialog();
+    //QDialog::DialogCode showDialog();
     
 private slots:
   void done(int val);
@@ -64,7 +65,9 @@ private slots:
   void apply();
   int exec();
   //void open();
-  void reject();  
+  void reject();
+  void currentChanged(const QModelIndex &current);
+  void currentTabChanged(int);
   
 private: 
   
@@ -82,22 +85,29 @@ private:
   const QList<IOptionsPage *> m_pages;
   QSet<IOptionsPage *> m_visitedPages;
   
+  bool m_running;
+  bool m_applied;
+  bool m_finished;
   
   
   void createGui();
+  void execDialog();
   //void accept();
   //void reject();
   //void apply();
   //void currentChanged(const QModelIndex &current);
-  //void currentTabChanged(int);
+  
   //void filter(const QString &text);
   
-  //void createGui();
   //void showCategory(int index);
-  //void showPage(Id pageId);
+  void showPage(int pageId);
   //void updateEnabledTabs(Category *category, const QString &searchText);
-  //void ensureCategoryWidget(Category *category);
-  //void disconnectTabWidgets();  
+  void ensureCategoryWidget(Category *category);
+  void disconnectTabWidgets();
+  static SettingsDialog *getSettingsDialog(QWidget *parent,int id_initialPage);
+
+
+  
 };
 
 

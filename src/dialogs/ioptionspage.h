@@ -50,6 +50,7 @@ public:
     * Returns a unique identifier for referencing 
     * the options page. 
     */
+    //TODO implement a truly unique identifier
     int id() const { return m_id; }
     /* Returns the translated display name of the options page.*/
     QString displayName() const { return m_displayName; }
