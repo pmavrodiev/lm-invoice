@@ -9,7 +9,7 @@
 #include <QPointer>
 #include <QSettings>
 
-
+using namespace Utils;
 
 // -------------- FilesOptionsPagePrivate
 
@@ -76,14 +76,14 @@ QWidget* FilesOptionsPage::widget() {
     d_ptr->m_ui->setupUi(d_ptr->m_widget);
     //connect signals
     connect(d_ptr->m_ui->latextemplateChooser,
-	    SIGNAL(pathChanged(const QString &path)),
+	    SIGNAL(pathChanged(const QString )),
 	    &d_ptr->m_value,
-	    SLOT(FileSettings::setLatexTemplate(const QString &path))
+	    SLOT(setLatexTemplate(const QString &))
  	  );
     connect(d_ptr->m_ui->membersFileChooser,
-	    SIGNAL(pathChanged(const QString &path)),
+	    SIGNAL(pathChanged(const QString &)),
 	    &d_ptr->m_value,
-	    SLOT(FileSettings::setMembersTemplate(const QString &path))
+	    SLOT(setMembersTemplate(const QString &))
  	  );
     d_ptr->m_lastValue=d_ptr->m_value;
   }

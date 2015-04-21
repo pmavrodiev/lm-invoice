@@ -56,11 +56,11 @@ SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
   
   m_model->setPages(m_pages,ExtensionSystem::PluginManager::getObjects<IOptionsPageProvider>());
   categoryListView->setIconSize(QSize(categoryIconSize,categoryIconSize));
-  //categoryListView->setModel(m_proxyModel);
+  categoryListView->setModel(m_model);
   categoryListView->setSelectionMode(QAbstractItemView::SingleSelection);
   categoryListView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   
-  connect(categoryListView->selectionModel(),SIGNAL(QItemSelectionModel::currentRowChanged()),
+  connect(categoryListView->selectionModel(),SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
 	  this, SLOT(currentChanged(const QModelIndex &)));
   
   categoryListView->setFocus();
@@ -152,7 +152,7 @@ void SettingsDialog::ensureCategoryWidget(Category* category) {
 void SettingsDialog::disconnectTabWidgets() {
     foreach (Category *category, m_model->categories()) {
         if (category->tabWidget)
-            disconnect(category->tabWidget,SIGNAL(QTabWidget::currentChanged(int)),
+            disconnect(category->tabWidget,SIGNAL(currentChanged(int)),
 		       this,SLOT(currentTabChanged(int)));
     }
 }

@@ -18,8 +18,8 @@ public:
   void toSettings(const QString &category, QSettings *s);
   bool fromSettings(const QString &category,
 		      const QSettings *s);
-  void setLatexTemplate(const QString &file) {m_latextemplate=file;}
-  void setMembersTemplate(const QString &file) {m_membersfile=file;}
+  QString latexTemplate() const {return m_latextemplate;};
+  QString membersTemplate() const {return m_membersfile;};
   bool equals(const FilesSettings &fs) const;
   FilesSettings &operator= (const FilesSettings &f) {
     m_latextemplate=f.m_latextemplate;
@@ -28,8 +28,9 @@ public:
   };
   
 public slots:
-  QString latexTemplate() const {return m_latextemplate;};
-  QString membersTemplate() const {return m_membersfile;};
+  void setLatexTemplate(const QString &file) {m_latextemplate=file;}
+  void setMembersTemplate(const QString &file) {m_membersfile=file;}
+  
 private:
   QString m_latextemplate;
   QString m_membersfile; 

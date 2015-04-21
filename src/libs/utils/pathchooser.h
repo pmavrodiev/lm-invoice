@@ -49,7 +49,7 @@ class FancyLineEdit;
 class Environment;
 class PathChooserPrivate;
 
-class QTCREATOR_UTILS_EXPORT PathChooser : public QWidget
+class PathChooser : public QWidget
 {
     Q_OBJECT
     Q_ENUMS(Kind)
@@ -143,10 +143,6 @@ public:
     typedef std::function<bool(const QString &, QString *)> PathValidator;
     void setAdditionalPathValidator(const PathValidator &pathValidator);
 
-private:
-    // Returns overridden title or the one from <title>
-    QString makeDialogTitle(const QString &title);
-
 signals:
     void pathChanged(const QString &path);
     void beforeBrowsing();
@@ -155,7 +151,10 @@ signals:
     void changed(const QString &text);
     void validChanged(bool validState);
     void editingFinished();
-
+    
+private:
+    // Returns overridden title or the one from <title>
+    QString makeDialogTitle(const QString &title);
 
 public slots:
     void setPath(const QString &);
