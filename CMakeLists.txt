@@ -12,7 +12,7 @@ file(GLOB HEADERS src/*.h src/dialogs/*.h src/libs/pluginmanager/*.h src/libs/ut
 set(Invoice_Generator_SRCS ${SOURCES})
 set(Invoice_Generator_MOC_HEADERS ${HEADERS})
 
-set(GCC_11 "-std=c++11")
+set(GCC_11 "-std=c++11 -g")
 
 find_package(Qt4 REQUIRED)
 

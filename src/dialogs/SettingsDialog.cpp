@@ -69,12 +69,12 @@ SettingsDialog::SettingsDialog ( QWidget* parent ) : QDialog ( parent ) {
 
 SettingsDialog::~SettingsDialog() {
   qDebug() << "In ~SettingsDialog";
-  delete m_headerLabel;
+  //delete m_headerLabel;
   //delete headerHLayout;
-  delete stackedLayout;
-  delete categoryListView;
-  if (m_instance)
-    delete m_instance;
+  //delete stackedLayout;
+  //delete categoryListView;
+  //if (m_instance)
+  //  delete m_instance;
   qDebug() << "Out of ~SettingsDialog";
 }
 
@@ -87,8 +87,9 @@ void SettingsDialog::done(int val) {
   QDialog::done(val);
 }
 
+/*OK button*/
 void SettingsDialog::accept() {
-  qDebug() << "Pressed Accept";
+  qDebug() << "Pressed OK";
   if (m_finished)
       return;
   m_finished = true;
@@ -130,7 +131,7 @@ void SettingsDialog::ensureCategoryWidget(Category* category) {
   if (!category->providerPagesCreated) {
     foreach (const IOptionsPageProvider *provider, category->providers)
             category->pages += provider->pages();
-    category->providerPagesCreated = true;    
+    category->providerPagesCreated = true;
   }
   
   //qStableSort(category->pages.begin(), category->pages.end(), optionsPageLessThan);
@@ -178,7 +179,7 @@ void SettingsDialog::execDialog() {
         m_finished = false;
         exec();
         m_running = false;
-        m_instance = 0;
+        //m_instance = 0;
 	deleteLater();
    }
 }
@@ -254,7 +255,7 @@ void SettingsDialog::createGui() {
   headerLabelFont.setBold(true);
   const int pointSize = headerLabelFont.pointSize();
   if (pointSize > 0)
-    headerLabelFont.setPointSize(pointSize+2);
+    headerLabelFont.setPointSize(pointSize+6);
   m_headerLabel->setFont(headerLabelFont);
   //
   QHBoxLayout *headerHLayout = new QHBoxLayout;
@@ -262,9 +263,10 @@ void SettingsDialog::createGui() {
   headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
   headerHLayout->addWidget(m_headerLabel);
  
-  stackedLayout->setMargin(0);
+  //stackedLayout->setMargin(0);
   stackedLayout->addWidget(new QWidget(this)); // no category selected, for example when filtering
- 
+  //QPushButton *b = new QPushButton("HAHA");
+  //stackedLayout->addWidget(b);
   QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
                                                      QDialogButtonBox::Apply |
                                                      QDialogButtonBox::Cancel);
@@ -280,11 +282,13 @@ void SettingsDialog::createGui() {
   
   QGridLayout *mainGridLayout = new QGridLayout;
   //mainGridLayout->addWidget(m_filterLineEdit, 0, 0, 1, 1);
-  mainGridLayout->addLayout(headerHLayout,    0, 1, 1, 1);
-  mainGridLayout->addWidget(categoryListView,   1, 0, 1, 1);
-  mainGridLayout->addLayout(stackedLayout,  1, 1, 1, 1);
-  mainGridLayout->addWidget(buttonBox,        2, 0, 1, 2);
-  mainGridLayout->setColumnStretch(1, 4);
+  //mainGridLayout->addLayout(headerHLayout,    /*row*/0, /*column*/0, /*rowSpan*/1, /*colSpan*/1);
+  mainGridLayout->addWidget(categoryListView,0,0,2,2);  
+  
+  mainGridLayout->addLayout(stackedLayout,  0, 2, 2, 1);
+  
+  mainGridLayout->addWidget(buttonBox,2, 1, 1, 2);
+  mainGridLayout->setColumnStretch(2, 1);
   setLayout(mainGridLayout); 
  
   setMinimumSize(1000, 550);

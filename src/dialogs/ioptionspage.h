@@ -44,7 +44,7 @@ class IOptionsPage : public QObject {
     Q_OBJECT
 
 public:
-    IOptionsPage(QObject *parent = 0);
+    IOptionsPage(QObject *parent = 0, int id=-1);
     virtual ~IOptionsPage();
     /* 
     * Returns a unique identifier for referencing 

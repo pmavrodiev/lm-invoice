@@ -52,7 +52,7 @@ FilesOptionsPagePrivate::FilesOptionsPagePrivate(int id,
 
 
 
-FilesOptionsPage::FilesOptionsPage(int id,QObject* parent): IOptionsPage(parent) {
+FilesOptionsPage::FilesOptionsPage(int id,QObject* parent): IOptionsPage(parent,id) {
   setCategory(QString("C.FileChooser"));
   setDisplayCategory(QCoreApplication::translate("FileChooser", "File Chooser"));
   setCategoryIcon(QLatin1String("images/category_texteditor.png"));

@@ -152,8 +152,7 @@ void lm_invoice::saveMembFile() {
 
 void lm_invoice::openSettingsDialog() {  
   //reuse previous dialogs if any
-  if (!sd)
-    sd=SettingsDialog::getSettingsDialog(this,0);
+  sd=SettingsDialog::getSettingsDialog(this,0);
   //this is a blocking call
   //QDialog::DialogCode rv = sd->execDialog();
   sd->execDialog();

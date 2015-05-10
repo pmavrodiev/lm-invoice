@@ -49,9 +49,9 @@ QIcon IOptionsPage::categoryIcon() const {
 /*
     Constructs an options page with the given \a parent.
 */
-IOptionsPage::IOptionsPage(QObject *parent)
-: QObject(parent), m_keywordsInitialized(false) {
-
+IOptionsPage::IOptionsPage(QObject *parent, int id)
+: QObject(parent), m_keywordsInitialized(false)  {
+m_id=id;
 }
 
 /*

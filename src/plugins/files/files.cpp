@@ -26,7 +26,7 @@ public:
 
 Files::Files(QObject* parent): QObject(parent) {
   d = new FilesPrivate();
-  d->m_filesoptionpage = new FilesOptionsPage(/*id=*/0,/*parent=*/this);
+  d->m_filesoptionpage = new FilesOptionsPage(/*id=*/10,/*parent=*/this);
   ExtensionSystem::PluginManager::addObject(d->m_filesoptionpage);
   
   connect(d->m_filesoptionpage, SIGNAL(changed(const FilesSettings &)),
